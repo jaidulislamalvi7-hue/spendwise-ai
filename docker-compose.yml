@@ -1,0 +1,77 @@
+# SpendWise AI - local containerised development stack.
+#
+# This file is for LOCAL DEVELOPMENT ONLY. The PostgreSQL service below is a
+# convenience container; production should use a managed PostgreSQL instance.
+#
+#   docker compose up --build
+#   docker compose exec backend alembic upgrade head
+#
+# Required environment (create a .env file next to this file):
+#   POSTGRES_PASSWORD=...        password for the local postgres container
+#   JWT_SECRET=...               generated with secrets.token_urlsafe(32)
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-spendwise}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-spendwise_db}
+    volumes:
+      # Named volume keeps data across container restarts.
+      - spendwise_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-spendwise} -d ${POSTGRES_DB:-spendwise_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # No host port published: the database is reachable only on the compose network.
+    networks:
+      - spendwise
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-spendwise}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-spendwise_db}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      JWT_EXPIRE_MINUTES: ${JWT_EXPIRE_MINUTES:-60}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:-}
+    ports:
+      - "8000:8000"
+    # Alembic is run explicitly, never automatically, so a restart cannot
+    # mutate the schema unexpectedly.
+    networks:
+      - spendwise
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      # Server-side URL inside the compose network; the browser never sees this.
+      BACKEND_API_URL: http://backend:8000
+    ports:
+      - "8501:8501"
+    networks:
+      - spendwise
+
+volumes:
+  spendwise_pgdata:
+
+networks:
+  spendwise:
+    driver: bridge

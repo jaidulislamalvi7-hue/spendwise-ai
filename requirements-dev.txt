@@ -1,0 +1,7 @@
+# SpendWise AI - development dependencies (mirrors pyproject.toml
+# [project.optional-dependencies].dev). Install alongside requirements.txt:
+#     pip install -r requirements.txt -r requirements-dev.txt
+
+pytest>=8.3,<9.0
+pytest-cov>=5.0,<7.0
+ruff>=0.6,<1.0

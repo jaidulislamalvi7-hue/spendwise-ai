@@ -1,0 +1,54 @@
+# SpendWise AI - production-style compose file (reference only).
+#
+# This is a starting point for a self-hosted deployment. It deliberately does
+# NOT include PostgreSQL: production should use a managed database with its own
+# backups. Supply DATABASE_URL yourself.
+#
+# Before use:
+#   1. cp deploy.env.example .env.production  and fill every value.
+#   2. docker compose -f docker-compose.prod.yml build
+#   3. docker compose -f docker-compose.prod.yml run --rm backend alembic upgrade head
+#   4. docker compose -f docker-compose.prod.yml up -d
+#
+# No credentials or URLs are committed; everything comes from the environment.
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      APP_ENV: production
+    expose:
+      - "8000"
+    ports:
+      # Publish only on loopback; a reverse proxy should terminate TLS.
+      - "127.0.0.1:8000:8000"
+    networks:
+      - spendwise
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      # Internal service name; the browser never contacts the backend directly.
+      # Must be set here so it overrides any value in .env.production.
+      BACKEND_API_URL: http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8501:8501"
+    networks:
+      - spendwise
+
+networks:
+  spendwise:
+    driver: bridge

@@ -1,0 +1,42 @@
+# Secrets / local environment
+.env
+.env.*
+!.env.example
+!deploy.env.example
+
+# Production deployment assets are templates; real values never get committed.
+.env.production
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.python-version
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Streamlit local secrets
+.streamlit/secrets.toml
+
+# Local database files and logs
+*.db
+*.sqlite
+*.sqlite3
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

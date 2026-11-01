@@ -1,0 +1,43 @@
+# Keep build context small and free of secrets.
+# Applies to every service that builds from the repository root.
+.env
+.env.*
+!.env.example
+!deploy.env.example
+.env.production
+
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+.git/
+.gitignore
+.github/
+docs/
+docker-compose*.yml
+Dockerfile
+*.Dockerfile
+
+# Tests are not needed at runtime; excluding them keeps images lean.
+**/tests/
+**/__tests__/
+pytest.ini
+conftest.py
+
+*.db
+*.sqlite
+*.sqlite3
+*.log
+backup_before_migrate.sql
+
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
