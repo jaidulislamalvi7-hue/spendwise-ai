@@ -1,0 +1,37 @@
+{
+  "name": "SpendWise AI (Codespaces)",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "dev",
+  "workspaceFolder": "/workspaces/spendwise-ai",
+  "shutdownAction": "stopCompose",
+
+  "initializeCommand": "bash .devcontainer/init-env.sh",
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  "postStartCommand": "bash .devcontainer/start.sh",
+
+  "forwardPorts": [8000, 8501],
+  "portsAttributes": {
+    "8501": {
+      "label": "SpendWise AI (Streamlit)",
+      "onAutoForward": "openPreview"
+    },
+    "8000": {
+      "label": "SpendWise AI API (FastAPI)",
+      "onAutoForward": "notify"
+    }
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python", "charliermarsh.ruff"],
+      "settings": {
+        "python.defaultInterpreterPath": "/workspaces/spendwise-ai/.venv/bin/python",
+        "python.testing.pytestEnabled": true,
+        "python.testing.pytestArgs": ["backend/tests", "frontend/tests"],
+        "python.terminal.activateEnvironment": true
+      }
+    }
+  },
+
+  "remoteUser": "vscode"
+}
